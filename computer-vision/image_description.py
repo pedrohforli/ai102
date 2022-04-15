@@ -16,7 +16,3 @@ image_url = "https://pbs.twimg.com/media/FPBAfjxXMAQN2uh.jpg"
 # describe the image
 response = client.describe_image(image_url, max_candidates=1)
 print(response.captions[0])
-
-# get tags for the image
-tags = client.tag_image(url=image_url)
-print([tag.name for tag in tags.tags])
