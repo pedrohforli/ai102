@@ -1,11 +1,13 @@
-import os
+import yaml
 
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
 
 # get the information about the connection
-subscription_key = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
-endpoint = os.environ["COMPUTER_VISION_ENDPOINT"]
+with open("../account_configs.yml", "r") as f:
+    data = yaml.load(f, yaml.FullLoader)
+    subscription_key = data["cv_subscription_key"]
+    endpoint = data["cv_endpoint"]
 
 # create a client to connect with the API
 client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
