@@ -31,7 +31,7 @@ def pretty_print(klass, indent=0):
 
 
 # get the information about the connection
-with open("../account_configs.yml", "r") as f:
+with open("../../account_configs.yml", "r") as f:
     data = yaml.load(f, yaml.FullLoader)
     training_key = data["cv_t_subscription_key"]
     training_endpoint = data["cv_t_endpoint"]

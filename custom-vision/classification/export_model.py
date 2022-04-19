@@ -1,8 +1,22 @@
+import os
+import time
+import zipfile
 import yaml
+import requests
+from azure.cognitiveservices.vision.customvision.training.models._models_py3 import (
+    CustomVisionErrorException,
+)
 from azure.cognitiveservices.vision.customvision.training import (
     CustomVisionTrainingClient,
 )
 from msrest.authentication import ApiKeyCredentials
+
+
+def download_url(url, save_path, chunk_size=128):
+    r = requests.get(url, stream=True)
+    with open(save_path, "wb") as fd:
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            fd.write(chunk)
 
 
 # Do not worry about this function, it is for pretty printing the attributes!
@@ -23,21 +37,18 @@ def pretty_print(klass, indent=0):
         indent += 4
         print(" " * indent + klass)
 
-
 # get the information about the connection
-with open("../account_configs.yml", "r") as f:
+with open("../../account_configs.yml", "r") as f:
     data = yaml.load(f, yaml.FullLoader)
     training_key = data["cv_t_subscription_key"]
     endpoint = data["cv_t_endpoint"]
     prediction_resource_id = data["cv_p_resource_id"]
 
-# load the credentials
+# load the training credentials
 credentials = ApiKeyCredentials(in_headers={"Training-key": training_key})
-
-# create a client
 trainer = CustomVisionTrainingClient(endpoint, credentials)
 
-# find the project
+# get the project
 project_name = f"waterfalls"
 publish_iteration_name = "basic_waterfall_model"
 project_id = None
@@ -49,11 +60,30 @@ for project in projects:
 if project_id is None:
     raise ValueError("Project does not exist")
 
-# The iteration is now trained. Publish it to the project endpoint
+# The iteration is now trained. Export it!
+print("Exporting Model Iteration...")
 iterations = trainer.get_iterations(project_id=project_id)
-for iteration in iterations:
-    pretty_print(iteration)
-trainer.publish_iteration(
-    project_id, iterations[0].id, publish_iteration_name, prediction_resource_id
-)
-print("Done!")
+try:
+    trainer.export_iteration(
+        project_id=project_id,
+        iteration_id=iterations[-1].id,
+        platform="DockerFile",
+        flavor="Linux",
+    )
+except CustomVisionErrorException:
+    print("Model is already ready for export")
+
+
+exports = trainer.get_exports(project_id=project_id, iteration_id=iterations[-1].id)
+while exports[0].status == "Exporting":
+    exports = trainer.get_exports(project_id=project_id, iteration_id=iterations[-1].id)
+    print("Exporting. Waiting 10 seconds...")
+    time.sleep(10)
+print("Model export is found. Downloading...")
+download_uri = exports[0].download_uri
+
+
+download_url(url=download_uri, save_path="exported_model.zip")
+os.makedirs("exported", exist_ok=True)
+with zipfile.ZipFile("exported_model.zip", "r") as zip_ref:
+    zip_ref.extractall("exported")
