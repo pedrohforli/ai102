@@ -1,0 +1,1 @@
+https://raw.githubusercontent.com/axel-sirota/build-face-recognition-azure/main/images/no_person.jpeg
