@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # Account configurations
+.idea
 account_configs.yml
