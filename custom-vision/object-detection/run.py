@@ -1,7 +1,14 @@
-from azure.cognitiveservices.vision.customvision.training import CustomVisionTrainingClient
-from azure.cognitiveservices.vision.customvision.prediction import CustomVisionPredictionClient
-from azure.cognitiveservices.vision.customvision.training.models import ImageFileCreateBatch, ImageFileCreateEntry, \
-    Region
+from azure.cognitiveservices.vision.customvision.training import (
+    CustomVisionTrainingClient,
+)
+from azure.cognitiveservices.vision.customvision.prediction import (
+    CustomVisionPredictionClient,
+)
+from azure.cognitiveservices.vision.customvision.training.models import (
+    ImageFileCreateBatch,
+    ImageFileCreateEntry,
+    Region,
+)
 from msrest.authentication import ApiKeyCredentials
 import time
 
@@ -13,18 +20,25 @@ prediction_resource_id = "<your prediction resource id>"
 
 credentials = ApiKeyCredentials(in_headers={"Training-key": training_key})
 trainer = CustomVisionTrainingClient(ENDPOINT, credentials)
-prediction_credentials = ApiKeyCredentials(in_headers={"Prediction-key": prediction_key})
+prediction_credentials = ApiKeyCredentials(
+    in_headers={"Prediction-key": prediction_key}
+)
 predictor = CustomVisionPredictionClient(ENDPOINT, prediction_credentials)
 
 publish_iteration_name = "detectModel"
 
 # Find the object detection domain
 obj_detection_domain = next(
-    domain for domain in trainer.get_domains() if domain.type == "ObjectDetection" and domain.name == "General")
+    domain
+    for domain in trainer.get_domains()
+    if domain.type == "ObjectDetection" and domain.name == "General"
+)
 
 # Create a new project
 print("Creating project...")
-project = trainer.create_project("My Detection Project", domain_id=obj_detection_domain.id)
+project = trainer.create_project(
+    "My Detection Project", domain_id=obj_detection_domain.id
+)
 
 # Make two tags in the new project
 fork_tag = trainer.create_tag(project.id, "fork")
@@ -50,7 +64,7 @@ fork_image_regions = {
     "fork_17": [0.305147052, 0.2512582, 0.4791667, 0.5408496],
     "fork_18": [0.234068632, 0.445702642, 0.6127451, 0.344771236],
     "fork_19": [0.219362751, 0.141781077, 0.5919118, 0.6683006],
-    "fork_20": [0.180147052, 0.239820287, 0.6887255, 0.235294119]
+    "fork_20": [0.180147052, 0.239820287, 0.6887255, 0.235294119],
 }
 
 scissors_image_regions = {
@@ -73,7 +87,7 @@ scissors_image_regions = {
     "scissors_17": [0.2720588, 0.131977156, 0.4987745, 0.6911765],
     "scissors_18": [0.180147052, 0.112369314, 0.6262255, 0.6666667],
     "scissors_19": [0.333333343, 0.0274019931, 0.443627447, 0.852941155],
-    "scissors_20": [0.158088237, 0.04047389, 0.6691176, 0.843137264]
+    "scissors_20": [0.158088237, 0.04047389, 0.6691176, 0.843137264],
 }
 
 # Update this with the path to where you downloaded the images.
@@ -87,19 +101,31 @@ for file_name in fork_image_regions.keys():
     x, y, w, h = fork_image_regions[file_name]
     regions = [Region(tag_id=fork_tag.id, left=x, top=y, width=w, height=h)]
 
-    with open(base_image_location + "images/fork/" + file_name + ".jpg", mode="rb") as image_contents:
+    with open(
+        base_image_location + "images/fork/" + file_name + ".jpg", mode="rb"
+    ) as image_contents:
         tagged_images_with_regions.append(
-            ImageFileCreateEntry(name=file_name, contents=image_contents.read(), regions=regions))
+            ImageFileCreateEntry(
+                name=file_name, contents=image_contents.read(), regions=regions
+            )
+        )
 
 for file_name in scissors_image_regions.keys():
     x, y, w, h = scissors_image_regions[file_name]
     regions = [Region(tag_id=scissors_tag.id, left=x, top=y, width=w, height=h)]
 
-    with open(base_image_location + "images/scissors/" + file_name + ".jpg", mode="rb") as image_contents:
+    with open(
+        base_image_location + "images/scissors/" + file_name + ".jpg", mode="rb"
+    ) as image_contents:
         tagged_images_with_regions.append(
-            ImageFileCreateEntry(name=file_name, contents=image_contents.read(), regions=regions))
+            ImageFileCreateEntry(
+                name=file_name, contents=image_contents.read(), regions=regions
+            )
+        )
 
-upload_result = trainer.create_images_from_files(project.id, ImageFileCreateBatch(images=tagged_images_with_regions))
+upload_result = trainer.create_images_from_files(
+    project.id, ImageFileCreateBatch(images=tagged_images_with_regions)
+)
 if not upload_result.is_batch_successful:
     print("Image batch upload failed.")
     for image in upload_result.images:
@@ -114,18 +140,29 @@ while iteration.status != "Completed":
     time.sleep(1)
 
 # The iteration is now trained. Publish it to the project endpoint
-trainer.publish_iteration(project.id, iteration.id, publish_iteration_name, prediction_resource_id)
+trainer.publish_iteration(
+    project.id, iteration.id, publish_iteration_name, prediction_resource_id
+)
 print("Done!")
 
 # Now there is a trained endpoint that can be used to make a prediction
 
 # Open the sample image and get back the prediction results.
-with open(base_image_location + "images/Test/test_od_image.jpg", mode="rb") as test_data:
+with open(
+    base_image_location + "images/Test/test_od_image.jpg", mode="rb"
+) as test_data:
     results = predictor.detect_image(project.id, publish_iteration_name, test_data)
 
 # Display the results.
 for prediction in results.predictions:
     print(
-        "\t" + prediction.tag_name + ": {0:.2f}% bbox.left = {1:.2f}, bbox.top = {2:.2f}, bbox.width = {3:.2f}, bbox.height = {4:.2f}".format(
-            prediction.probability * 100, prediction.bounding_box.left, prediction.bounding_box.top,
-            prediction.bounding_box.width, prediction.bounding_box.height))
+        "\t"
+        + prediction.tag_name
+        + ": {0:.2f}% bbox.left = {1:.2f}, bbox.top = {2:.2f}, bbox.width = {3:.2f}, bbox.height = {4:.2f}".format(
+            prediction.probability * 100,
+            prediction.bounding_box.left,
+            prediction.bounding_box.top,
+            prediction.bounding_box.width,
+            prediction.bounding_box.height,
+        )
+    )
