@@ -24,7 +24,7 @@ features = [
 # create a client to connect with the API
 credential = CognitiveServicesCredentials(subscription_key)
 client = ComputerVisionClient(endpoint=endpoint, credentials=credential)
-image_file = ""
+image_file = "image/Faces.jpg"
 
 
 # ######################### Get image analysis ######################### #
