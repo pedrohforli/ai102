@@ -4,8 +4,6 @@ from pprint import pprint
 import requests
 import yaml
 
-from azure_translator import Translator
-
 # get the information about the connection
 with open("../account_configs.yml", "r") as f:
     data = yaml.load(f, yaml.FullLoader)
