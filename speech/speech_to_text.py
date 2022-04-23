@@ -20,11 +20,29 @@ speech_config.enable_dictation()
 audio_input = AudioConfig(filename="media/Speech_Media_narration.wav")
 
 # generate the speech recognizer
-speech_recognizer = SpeechRecognizer(
+audio_transcriber = SpeechRecognizer(
     speech_config=speech_config, audio_config=audio_input
 )
 
 # run the recognition api
+result = audio_transcriber.recognize_once()
+
+# print the text output according to the result
+if result.reason == ResultReason.RecognizedSpeech:
+    print("Recognized: {}".format(result.text))
+elif result.reason == ResultReason.NoMatch:
+    print("No speech could be recognized: {}".format(result.no_match_details))
+elif result.reason == ResultReason.Canceled:
+    cancellation_details = result.cancellation_details
+    print("Speech Recognition canceled: {}".format(cancellation_details.reason))
+    if cancellation_details.reason == CancellationReason.Error:
+        print("Error details: {}".format(cancellation_details.error_details))
+
+
+# generate the speech recognizer
+speech_recognizer = SpeechRecognizer(speech_config=speech_config)
+
+print("Say something...")
 result = speech_recognizer.recognize_once()
 
 # print the text output according to the result
