@@ -22,13 +22,17 @@ audio_filename = "media/text-to-speech-py.wav"
 audio_output = AudioOutputConfig(filename=audio_filename)
 
 # Creates a speech synthesizer using the default speaker as audio output.
-speech_synthesizer = SpeechSynthesizer(speech_config=speech_config, audio_config=audio_output)
+speech_synthesizer = SpeechSynthesizer(speech_config=speech_config)
+speech_output = SpeechSynthesizer(speech_config=speech_config, audio_config=audio_output)
 
 # Receives a text from console input.
 text = input("Type some text that you want to speak...")
 
 # Synthesizes the received text to speech.
-result = speech_synthesizer.speak_text_async(text).get()
+_ = speech_synthesizer.speak_text_async(text).get()
+
+# Synthesizes the received text to speech.
+result = speech_output.speak_text_async(text).get()
 
 # Checks result.
 if result.reason == ResultReason.SynthesizingAudioCompleted:
