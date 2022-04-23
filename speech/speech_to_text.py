@@ -14,6 +14,7 @@ with open("../account_configs.yml", "r") as f:
 
 # create a speech configuration
 speech_config = SpeechConfig(subscription=subscription_key, region=location)
+speech_config.enable_dictation()
 
 # setup an audio input file
 audio_input = AudioConfig(filename="media/Speech_Media_narration.wav")
