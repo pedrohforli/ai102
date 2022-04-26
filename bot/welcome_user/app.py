@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 import sys
 import traceback
 from datetime import datetime
@@ -6,13 +9,15 @@ from http import HTTPStatus
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from botbuilder.core import (
-    BotFrameworkAdapterSettings,
-    TurnContext,
     BotFrameworkAdapter,
+    BotFrameworkAdapterSettings,
+    MemoryStorage,
+    TurnContext,
+    UserState,
 )
 from botbuilder.core.integration import aiohttp_error_middleware
 from botbuilder.schema import Activity, ActivityTypes
-from bots import EchoBot
+from bots import WelcomeUserBot
 from config import DefaultConfig
 
 CONFIG = DefaultConfig()
@@ -53,11 +58,15 @@ async def on_error(context: TurnContext, error: Exception):
 
 ADAPTER.on_turn_error = on_error
 
+# Create MemoryStorage, UserState
+MEMORY = MemoryStorage()
+USER_STATE = UserState(MEMORY)
+
 # Create the Bot
-BOT = EchoBot()
+BOT = WelcomeUserBot(USER_STATE)
 
 
-# Listen for incoming requests on /api/messages
+# Listen for incoming requests on /api/messages.
 async def messages(req: Request) -> Response:
     # Main bot message handler.
     if "application/json" in req.headers["Content-Type"]:
