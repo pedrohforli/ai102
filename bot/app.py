@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 import sys
 import traceback
 from datetime import datetime
@@ -9,18 +6,16 @@ from http import HTTPStatus
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from botbuilder.core import (
-    BotFrameworkAdapter,
     BotFrameworkAdapterSettings,
-    ConversationState,
-    MemoryStorage,
     TurnContext,
-    UserState,
+    BotFrameworkAdapter,
 )
 from botbuilder.core.integration import aiohttp_error_middleware
 from botbuilder.schema import Activity, ActivityTypes
+from bots import EchoBot
 from bots import DialogBot
+from bots import WelcomeUserBot
 from config import DefaultConfig
-from dialogs import UserProfileDialog
 
 CONFIG = DefaultConfig()
 
@@ -32,10 +27,10 @@ ADAPTER = BotFrameworkAdapter(SETTINGS)
 
 # Catch-all for errors.
 async def on_error(context: TurnContext, error: Exception):
-    # This check writes out errors to console log
+    # This check writes out errors to console log .vs. app insights.
     # NOTE: In production environment, you should consider logging this to Azure
     #       application insights.
-    print(f"\n [on_turn_error]: { error }", file=sys.stderr)
+    print(f"\n [on_turn_error] unhandled error: {error}", file=sys.stderr)
     traceback.print_exc()
 
     # Send a message to the user
@@ -54,29 +49,22 @@ async def on_error(context: TurnContext, error: Exception):
             value=f"{error}",
             value_type="https://www.botframework.com/schemas/error",
         )
-
         # Send a trace activity, which will be displayed in Bot Framework Emulator
         await context.send_activity(trace_activity)
 
-    # Clear out state
-    await CONVERSATION_STATE.delete(context)
 
-
-# Set the error handler on the Adapter.
-# In this case, we want an unbound method, so MethodType is not needed.
 ADAPTER.on_turn_error = on_error
 
-# Create MemoryStorage, UserState and ConversationState
-MEMORY = MemoryStorage()
-CONVERSATION_STATE = ConversationState(MEMORY)
-USER_STATE = UserState(MEMORY)
+# Create the Bot
+if bot_type == "ECHO":
+    BOT = EchoBot()
+elif bot_type == "DIALOG":
+    BOT = DialogBot()
+elif bot_type == "WELCOME":
+    BOT = WelcomeUserBot()
 
-# create main dialog and bot
-DIALOG = UserProfileDialog(USER_STATE)
-BOT = DialogBot(CONVERSATION_STATE, USER_STATE, DIALOG)
 
-
-# Listen for incoming requests on /api/messages.
+# Listen for incoming requests on /api/messages
 async def messages(req: Request) -> Response:
     # Main bot message handler.
     if "application/json" in req.headers["Content-Type"]:

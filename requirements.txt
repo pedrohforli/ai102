@@ -6,6 +6,8 @@ azure-cognitiveservices-language-luis==0.7.0
 azure-ai-formrecognizer==3.1.2
 azure-ai-textanalytics==5.1.0
 botbuilder-integration-aiohttp==4.14.2
+botbuilder-dialogs==4.14.2
+botbuilder-ai==4.14.2
 PyYAML==6.0
 pillow==9.1.0
 requests==2.27.1
