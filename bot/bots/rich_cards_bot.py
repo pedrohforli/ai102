@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 from botbuilder.core import MessageFactory, TurnContext
 from botbuilder.schema import ChannelAccount
 from .dialog_bot import DialogBot
